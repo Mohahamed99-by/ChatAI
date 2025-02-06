@@ -310,7 +310,7 @@ const DeepSeekChatAI = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t bg-[#181818] p-4 mb-6 md:p-6">
+      <div className="border-t bg-[#181818] p-4 mb-10 md:p-6">
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center bg-[#181818] border rounded-xl shadow-sm overflow-hidden">
             <input
