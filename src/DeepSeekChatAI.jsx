@@ -1,6 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { User, Bot, Copy, Check, Edit, Save, X } from 'lucide-react';
+import {
+  User,
+  Bot,
+  Copy,
+  Check,
+  Edit,
+  Save,
+  X,
+  Trash,
+  ThumbsUp,
+  ThumbsDown
+} from 'lucide-react';
 
 const DeepSeekChatAI = () => {
   const [messages, setMessages] = useState([]);
@@ -12,6 +23,8 @@ const DeepSeekChatAI = () => {
   const [copiedCodeBlockId, setCopiedCodeBlockId] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editText, setEditText] = useState('');
+  const [thumbedUpMessages, setThumbedUpMessages] = useState([]);
+  const [thumbedDownMessages, setThumbedDownMessages] = useState([]);
   const messagesEndRef = useRef(null);
 
   const GEMINI_API_KEY = 'AIzaSyA8sSYI-WumgSF49KdnbgH7E20sWZXd3o8';
@@ -75,11 +88,8 @@ const DeepSeekChatAI = () => {
   };
 
   const saveEditedMessage = async () => {
-    // Find edited message and its index
     const editedIndex = messages.findIndex(msg => msg.id === editingMessageId);
     const editedMessage = { ...messages[editedIndex], text: editText };
-
-    // Remove all messages after the edited message
     const newMessages = [...messages.slice(0, editedIndex + 1)];
     newMessages[editedIndex] = editedMessage;
 
@@ -112,7 +122,6 @@ const DeepSeekChatAI = () => {
     let match;
 
     while ((match = codeBlockRegex.exec(text)) !== null) {
-      // Add text before code block
       if (match.index > lastIndex) {
         parts.push({
           type: 'text',
@@ -120,7 +129,6 @@ const DeepSeekChatAI = () => {
         });
       }
 
-      // Add code block with language
       parts.push({
         type: 'code',
         language: match[1] || '',
@@ -131,7 +139,6 @@ const DeepSeekChatAI = () => {
       lastIndex = match.index + match[0].length;
     }
 
-    // Add remaining text
     if (lastIndex < text.length) {
       parts.push({
         type: 'text',
@@ -207,6 +214,22 @@ const DeepSeekChatAI = () => {
     }
   };
 
+  const thumbUpMessage = (message) => {
+    setThumbedUpMessages((prev) => [...prev, message.id]);
+    setThumbedDownMessages((prev) => prev.filter((id) => id !== message.id));
+  };
+
+  const thumbDownMessage = (message) => {
+    setThumbedDownMessages((prev) => [...prev, message.id]);
+    setThumbedUpMessages((prev) => prev.filter((id) => id !== message.id));
+  };
+
+  const deleteMessage = (message) => {
+    setMessages((prev) => prev.filter((msg) => msg.id !== message.id));
+    setThumbedUpMessages((prev) => prev.filter((id) => id !== message.id));
+    setThumbedDownMessages((prev) => prev.filter((id) => id !== message.id));
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[#121212]">
       <div className="flex-grow overflow-y-auto px-4 md:px-8 lg:px-16 space-y-6">
@@ -276,6 +299,38 @@ const DeepSeekChatAI = () => {
                     )}
                   </button>
                 )}
+
+                <div className="flex space-x-2 mt-2">
+                  <button
+                    onClick={() => thumbUpMessage(msg)}
+                    className={`flex items-center space-x-1 text-sm rounded-full px-2 py-1 transition-colors
+                      ${thumbedUpMessages.includes(msg.id)
+                        ? 'bg-[#388e3c] text-[#a5d6a7] hover:bg-[#4caf50]'
+                        : 'bg-[#333333] text-[#757575] hover:bg-[#424242]'}`}
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    <span>Like</span>
+                  </button>
+                  <button
+                    onClick={() => thumbDownMessage(msg)}
+                    className={`flex items-center space-x-1 text-sm rounded-full px-2 py-1 transition-colors
+                      ${thumbedDownMessages.includes(msg.id)
+                        ? 'bg-[#c62828] text-[#ef9a9a] hover:bg-[#e53935]'
+                        : 'bg-[#333333] text-[#757575] hover:bg-[#424242]'}`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    <span>Dislike</span>
+                  </button>
+                  {msg.role === 'user' && (
+                    <button
+                      onClick={() => deleteMessage(msg)}
+                      className="flex items-center space-x-1 text-sm rounded-full px-2 py-1 bg-[#333333] text-[#757575] hover:bg-[#424242] transition-colors"
+                    >
+                      <Trash className="w-4 h-4" />
+                      <span>Delete</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -294,46 +349,34 @@ const DeepSeekChatAI = () => {
                 {currentResponse ? (
                   <div className="prose prose-sm max-w-none whitespace-pre-wrap bg-[#212121] p-3 rounded-lg shadow-sm text-white">
                     {renderMessage(currentResponse)}
-                    <span className="inline-block w-1 h-4 bg-[#a5d6a7] animate-pulse ml-1"></span>
+                    <span className="inline-block w-1 h-4 bg-[#a5d6a7] animate-blink"></span>
                   </div>
                 ) : (
-                  <div className="animate-pulse flex space-x-2">
-                    <div className="h-2 w-2 bg-[#757575] rounded-full"></div>
-                    <div className="h-2 w-2 bg-[#757575] rounded-full"></div>
-                    <div className="h-2 w-2 bg-[#757575] rounded-full"></div>
+                  <div className="prose prose-sm max-w-none whitespace-pre-wrap bg-[#212121] p-3 rounded-lg shadow-sm text-white">
+                    <span className="inline-block w-1 h-4 bg-[#a5d6a7] animate-blink"></span>
                   </div>
                 )}
               </div>
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
-      <div className="border-t bg-[#181818] p-4 mb-14 md:p-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex items-center bg-[#181818] border rounded-xl shadow-sm overflow-hidden">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              className="flex-grow px-4 py-3 focus:outline-none text-sm text-white bg-[#333333]"
-              placeholder="Message Gemini..."
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-            />
-            <button
-              onClick={sendMessage}
-              className={`px-4 py-3 flex items-center justify-center
-                ${input.trim()
-                  ? 'text-[#81c784] hover:bg-[#388e3c]'
-                  : 'text-[#757575] cursor-not-allowed'}`}>
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h14M12 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-        </div>
+      <div className="flex items-center px-4 md:px-8 lg:px-16 py-4 bg-[#1a1a1a] shadow-lg">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="Type your message..."
+          className="w-full px-4 py-2 bg-[#333333] text-white rounded-lg focus:outline-none"
+        />
+        <button onClick={sendMessage} className="ml-4 px-4 py-2 bg-[#1db954] text-white rounded-lg hover:bg-[#17a243] transition-colors">
+          Send
+        </button>
       </div>
+
+      <div ref={messagesEndRef} />
     </div>
   );
 };
