@@ -175,7 +175,7 @@ const DeepSeekChatAI = () => {
               {copiedCodeBlockId === part.id ? (
                 <Check className="w-4 h-4 text-[#a5d6a7]" />
               ) : (
-                <Copy className="w-4 h-4 text-[#757575] hover:text-[#81c784]" />
+                <Copy className="w-4 h-4 text-[#81c784]" />
               )}
             </button>
           </div>
@@ -290,12 +290,12 @@ const DeepSeekChatAI = () => {
                 {msg.role === 'ai' && (
                   <button
                     onClick={() => copyToClipboard(msg.text, msg.id)}
-                    className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    className="absolute top-0 right-0  transition-opacity duration-300"
                   >
                     {copiedMessageId === msg.id ? (
                       <Check className="w-4 h-4 text-[#a5d6a7]" />
                     ) : (
-                      <Copy className="w-4 h-4 text-[#757575] hover:text-[#81c784]" />
+                      <Copy className="w-4 h-4 text-[#81c784]" />
                     )}
                   </button>
                 )}
